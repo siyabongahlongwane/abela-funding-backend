@@ -3,7 +3,6 @@ const router = express.Router();
 const User = require('../models/User');
 
 const updateProfile = async (req, res) => {
-    console.log(req.body)
     const user = await User.findOne(req.params);
     if (user) {
         delete req.body.password;

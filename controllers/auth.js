@@ -6,9 +6,9 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 const login = async (req, res) => {
-    const { email, password } = req.query;
+    let { email, password } = req.query;
+    email = req.query.email.toLowerCase();
     const user = await User.findOne({ 'contactDetails.email': email });
-
     if (user) {
         if (await bcrypt.compare(password, user.password)) {
             try {
@@ -27,8 +27,9 @@ const login = async (req, res) => {
 }
 
 const signUp = async (req, res) => {
+    req.body.contactDetails.email = req.body?.contactDetails?.email.toLowerCase();
     const query = { 'contactDetails.email': req.body?.contactDetails?.email };
-    console.log(query);
+
     const user = await User.findOne(query);
     if (user) {
         try {
@@ -60,34 +61,8 @@ const hashPassword = async (req, res) => {
     }
 }
 
-let x = {
-    "personalDetails": {
-        "name": "Sinenhlanhla",
-        "surname": "Tele",
-        "dateOfBirth": "1998-11-02T22:00:00.000Z"
-    },
-    "contactDetails": {
-        "cellOne": "0726326716",
-        "cellTwo": null,
-        "email": "telesinenhlanhla@gmail.com"
-    },
-    "addressDetails": {
-        "town": "Cosmo City",
-        "city": "Roodepoort",
-        "province": "Gauteng"
-    },
-    "password": "$2b$10$IzPNNzSSebqu.ycLOHiXOOcK4E2JATjTv5TrneX/sijUAPjDOsXeS",
-    "role": {
-        "id": "ST",
-        "description": "Student"
-    },
-    "refId": "Sinenhlanhla-7l2mupmeh9",
-    "referredBy": "Siyabonga-bm3fwig2ea"
-}
-
 const fetchReferrer = async (req, res) => {
     await User.find(req.query, { 'personalDetails.name': 1, 'personalDetails.surname': 1, 'contactDetails': 1 }).then(user => {
-        console.log(user)
         try {
             if (user.length > 0) {
                 res.send(user);
