@@ -42,7 +42,7 @@ async function sendMail(req, res) {
     // send mail with defined transport object
     let info = await transporter.sendMail({
         from: `siyabonga@webgooru.co.za`, // sender address
-        to: "siyabonga@webgooru.co.za", // list of receivers
+        to: type === 'application' ? "info@abelatrust.co.za": body?.addressDetails?.email, // list of receivers
         subject: subject, // Subject line
         html: output // html body
     });
@@ -80,7 +80,7 @@ const generateStatusUpdateEmailLayout = (body) => {
     <h3 style='margin: 0 !important; padding: 5px 0;'>Your application status update.</h3>
     <h3 style='margin: 0 !important; padding: 5px 0;'>Message:</h3>
         <p>Hi, your application status has been updated to: <span style="font-weight: bold">${body?.status?.current}</span> </p>
-        <p>Comments: <span style="font-weight: bold">${body?.status?.comment}</span> </p>
+        <p>Comments: <span style="font-weight: bold">${body?.status?.comment || "N/A"}</span> </p>
         <h3 >Login and check the application on the Beneficiaryy Panel. Link: <a style='color: #e01a72; font-weight: bold;' href="https://abela-trust-funding.web.app/abela/beneficiary/applications/view/${reqId}"><span style='color: #e01a72'>here</span></a></h3>
     </br>
     Warm Regards<br>
