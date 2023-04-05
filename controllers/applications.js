@@ -6,6 +6,7 @@ const makeRequest = async (req, res) => {
     await Application.create(req.body).then(application => {
         if (application) {
             req.body['_id'] = application['_id'].toString().split("(")[0];
+            req.query.type = 'application';
             mailFunctions.sendMail(req, res);
             res.status(200).send({ msg: "Application Submitted Successfully" });
         } else {
@@ -29,7 +30,7 @@ const fetchApplications = async (req, res) => {
         approved: 0,
         rejected: 0
     }
-    await Application.find(query, type == '-personalDetails.marksDoc').then(applications => {
+    await Application.find(query, type == '-personalDetails.marksDoc').sort({ 'dateCreated': -1 }).then(applications => {
         try {
             if (type == 'dashboard') {
                 temp['all'] = applications.length;
@@ -68,7 +69,6 @@ const fetchApplications = async (req, res) => {
 
 const fetchMarksDoc = async (req, res) => {
     const query = req.query;
-    console.log(query);
     await Application.findOne(query, 'personalDetails.marksDoc.base64').then(doc => {
         try {
             let base64 = doc?.personalDetails?.marksDoc?.base64
@@ -102,11 +102,11 @@ const updateStatus = async (req, res) => {
     const update = { status: req.body };
 
     await Application.findOneAndUpdate(filter, { $set: update }, { new: true, returnOriginal: false }).then((updatedDoc) => {
-        console.log(updatedDoc);
         try {
             if (updatedDoc) {
-                updatedDoc['type'] = 'statusUpdate';
-                mailFunctions.sendMail(updatedDoc, res);
+                req.body = updatedDoc;
+                req.query['type'] = 'statusUpdate';
+                mailFunctions.sendMail(req, res);
                 res.status(200).send({ msg: "Status Updated Successfully" });
             }
         } catch (err) {

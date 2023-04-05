@@ -4,7 +4,6 @@ const router = express.Router();
 
 async function sendMail(req, res) {
     const { type } = req.query || req.body;
-    console
     let body = req.body;
     let output = '';
     let subject = '';
@@ -17,6 +16,10 @@ async function sendMail(req, res) {
             subject = `New Application From - ${body.personalDetails.name}`;
             output = generateApplicationLayout(body);
             break;
+        case 'statusUpdate':
+            subject = `Abela Trust Application Status`;
+            output = generateStatusUpdateEmailLayout(body);
+            break;
         default:
             break;
     }
@@ -28,7 +31,7 @@ async function sendMail(req, res) {
         secure: true, // true for 465, false for other ports
         auth: {
             user: "siyabonga@webgooru.co.za", // generated ethereal user
-            pass: "jvPh60sb!", // generated ethereal password
+            pass: "onyinyechukwu98", // generated ethereal password
         },
         tls: {
             // do not fail on invalid certs
@@ -39,16 +42,17 @@ async function sendMail(req, res) {
     // send mail with defined transport object
     let info = await transporter.sendMail({
         from: `siyabonga@webgooru.co.za`, // sender address
-        to: "hlongwanesiyabonga6@gmail.com", // list of receivers
+        to: "siyabonga@webgooru.co.za", // list of receivers
         subject: subject, // Subject line
         html: output // html body
     });
 
     if (info.messageId) {
-        console.log("Message sent: %s", info.messageId);
-        res.send({ msg: "Email sent successfully" });
+        logger(info.messageId);
     } else {
-        res.status(500).send({ msg: "Email not sent, try again later." });
+        const msg = "Email not sent, try again later.";
+        if(type == 'email') res.status(500).send({ msg });
+        logger(msg);
     }
 }
 
@@ -71,16 +75,13 @@ const generateEmailLayout = (body) => {
 }
 
 const generateStatusUpdateEmailLayout = (body) => {
+    const reqId = body['_id'];
     return `
     <h3 style='margin: 0 !important; padding: 5px 0;'>Your application status update.</h3>
     <h3 style='margin: 0 !important; padding: 5px 0;'>Message:</h3>
-        <p>Hi, your application status has been updated to: ${body.status} </p>
-    <h3 style='margin: 0 !important; padding: 5px 0;'>Contact Details</h3>
-    <ul>
-        <li style='list-style: none;'> <b>Requestor</b>: ${body.name}</li>
-        <li style='list-style: none;'> <b>Email</b>:  ${body.email}</li>
-        <li style='list-style: none;'> <b>Phone</b>:  ${body.cellOne}</li>
-    </ul>
+        <p>Hi, your application status has been updated to: <span style="font-weight: bold">${body?.status?.current}</span> </p>
+        <p>Comments: <span style="font-weight: bold">${body?.status?.comment}</span> </p>
+        <h3 >Login and check the application on the Beneficiaryy Panel. Link: <a style='color: #e01a72; font-weight: bold;' href="https://abela-trust-funding.web.app/abela/beneficiary/applications/view/${reqId}"><span style='color: #e01a72'>here</span></a></h3>
     </br>
     Warm Regards<br>
     This email was sent from the Abela Trust Website through WEBGOORU PTY LTD's Email Server
@@ -98,15 +99,15 @@ const generateApplicationLayout = (body) => {
         <li style='list-style: none;'> <b>Email</b>:  ${body.addressDetails.email}</li>
         <li style='list-style: none;'> <b>Phone</b>:  ${body.addressDetails.cellOne}</li>
     </ul>
-    <h3 style='color: #e01a72'>Login and check the request on the Admin Panel. Link: <a style='color: #e01a72; font-weight: bold;' href="http://localhost:4000/abela/admin/applications/view/${reqId}">here</a></h3>
+    <h3 >Login and check the request on the Admin Panel. Link: <a style='color: #e01a72; font-weight: bold;' href="https://abela-trust-funding.web.app/abela/admin/applications/view/${reqId}"><span style='color: #e01a72'>here</span></a></h3>
     </br>
     Warm Regards<br>
     This email was sent from the Abela Trust Website through WEBGOORU PTY LTD's Email Server
     `;
 }
 
-const logger = () => {
-    console.log('Logged req');
+const logger = (text) => {
+    console.log(text);
 }
 
 router.post('/sendEmail', (req, res) => {
